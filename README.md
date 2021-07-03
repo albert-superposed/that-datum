@@ -1,6 +1,6 @@
 # that-datum
 Repo of tools for you to struggle lazily with data preparation.<br>
-Built with Python Tkinter. (Theme used - Azure)<br>
+Built with Python Tkinter. (Theme used - Azure https://github.com/rdbende/Azure-ttk-theme)<br>
 Current applications:<br>
 + Peel<br>
 + AnoDatum<br>
