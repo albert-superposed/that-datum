@@ -8,6 +8,7 @@ from ttkthemes import ThemedStyle
 class Peel:
     def __init__(self, root):
         self.root = root
+        self.root.title('Peel')
         self.fps = IntVar()
         self.fileName = StringVar()
         
