@@ -86,10 +86,9 @@ class Peel:
                     newpoint = i/nframe*100
                 else:
                     newpoint = 100
-
-root = Tk()
-app = Peel(root)
-root.mainloop()
                 self.progBar.config(value = newpoint)
                 self.progBar.update()
                 n += 1
+root = Tk()
+app = Peel(root)
+root.mainloop()
