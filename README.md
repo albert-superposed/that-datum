@@ -13,12 +13,18 @@ Supported file foramts:<br>
 
 ### AnoDatum
 AnoDatum is a tool design for annotating image data.<br>
-'Loading and saving settings' is supported.<br>
-Current supported annotating schemes:<br>
+Supports 'loading and saving settings'<br>
+Broke size barrier from last version.<br>
+Supported annotating schemes:<br>
++ Classic (a label at a time) <br>
++ Extended (multilabels at a time) <br>
++ Hierarchical (multilabels with relation and controlled selection at a time) <br>
+Current supported annotating modes:<br>
 + Bounding Box (format - [classid, centre_x, centre_y, width, height])<br>
 + Landmark (format - [landmarkid, x, y])<br>
 
-**Note: Feeded image is the space, meaning points are pixels.**<br>
+**Note: Everything is now Relational and in the range [0, 1] rounded to 4 decimals** <br>
+**to be consistent with various image sizes.**<br>
 Supported file formats:<br>
 + png<br>
 + jpg
