@@ -11,7 +11,7 @@ Supported file foramts:<br>
 + avi<br>
 + mp4<br>
 
-### AnoDatum
+### Anota
 AnoDatum is a tool design for annotating image data.<br>
 Supports 'loading and saving settings'<br>
 Broke size barrier from last version.<br>
