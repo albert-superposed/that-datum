@@ -5,7 +5,6 @@ import cv2
 import json
 from tkinter import *
 from tkinter import ttk, filedialog
-from ttkthemes import ThemedStyle
 from PIL import Image, ImageTk
 
 class AnoDatum:
@@ -202,11 +201,19 @@ class AnoDatum:
         # Configures style.
         self.currentTheme = 'light'
         self.style = ttk.Style(self.root)
-        self.root.tk.call('source', 'Azure/azure/azure.tcl')
-        self.root.tk.call('source', 'Azure/azure-dark/azure-dark.tcl')
-        self.style.theme_use('azure')
-        self.bg = '#ffffff'
-        self.fg = '#000000'
+        try:
+            self.root.tk.call('source', 'Azure/azure/azure.tcl')
+            self.root.tk.call('source', 'Azure/azure-dark/azure-dark.tcl')
+            self.styleDict = {'light': 'azure',
+                              'dark' : 'azure-dark'}
+            self.bg = {'light': '#ffffff', 'dark': '#333333'}
+            self.fg = {'light': '#000000', 'dark': '#ffffff'}
+        except: 
+            self.styleDict = {'light': 'default',
+                              'dark' : 'default'}
+            self.bg = {'light': '#ffffff', 'dark': '#000000'}
+            self.fg = {'light': '#000000', 'dark': '#ffffff'}
+        self.style.theme_use(self.styleDict[self.currentTheme])
         
         # Sets up file communication system.
         self.directoryPath = StringVar()
@@ -276,8 +283,8 @@ class AnoDatum:
         master = self.canvframe
         
         self.currentLabel = ttk.Label(master, text = '', font = ('Courier', 11)) # shows current label string
-        self.colorPatch = Canvas(master, width = 100, height = 5, relief = 'flat', bg = self.bg, highlightthickness = 0, bd = 0) # color idicator
-        self.canvCanvas = Canvas(master, width = 640, height = 480, relief = 'flat', bg = self.bg, highlightthickness = 0, bd = 0) # the actual drawing canvas
+        self.colorPatch = Canvas(master, width = 100, height = 5, relief = 'flat', bg = self.bg[self.currentTheme], highlightthickness = 0, bd = 0) # color idicator
+        self.canvCanvas = Canvas(master, width = 640, height = 480, relief = 'flat', bg = self.bg[self.currentTheme], highlightthickness = 0, bd = 0) # the actual drawing canvas
         
         # Scrollbars
         self.sby = ttk.Scrollbar(master, orient = VERTICAL) # y scrollbar
@@ -327,7 +334,7 @@ class AnoDatum:
         self.logBox = Text(master, font = ('Courier', 10),
                            width = 32, height = 10, 
                            relief = 'flat', state = 'disabled', 
-                           background = self.bg, foreground = self.fg,
+                           background = self.bg[self.currentTheme], foreground = self.fg[self.currentTheme],
                            highlightthickness = 0)
         
         indiLabel.grid(row = 0, column = 0, padx = (20, 0), pady = 10, sticky = N)
@@ -395,7 +402,7 @@ class AnoDatum:
                 self.colorPatch.configure(background = self.colorDict[self.currentClass.get()])
             except: # If not, invisiblise the label and color penel
                 self.currentLabel.configure(text = '')
-                self.colorPatch.configure(background = self.bg)
+                self.colorPatch.configure(background = self.bg[self.currentTheme])
                 
         def find_parent(node_index):
             '''Finds parent of given node index in the relationGraph.'''
@@ -441,7 +448,7 @@ class AnoDatum:
         self.slscLabel = ttk.Label(master, text = 'Scheme\t: '+self.currentScheme.get())
         self.slmoLabel = ttk.Label(master, text = 'Mode\t: '+self.currentMode.get())
         
-        labelselectCanvas = Canvas(master, width = 200, height = 450, relief = 'flat', bd = 0, highlightthickness = 0, bg = self.bg)
+        labelselectCanvas = Canvas(master, width = 200, height = 450, relief = 'flat', bd = 0, highlightthickness = 0, bg = self.bg[self.currentTheme])
         labels = self.getValues(self.classList)
         
         if self.currentScheme.get() == 'Classic': # ensures only ONE label is chosen in Classic
@@ -505,7 +512,7 @@ class AnoDatum:
         '''
         try: self.settings.lift() # ensures not to be called more than ONCE
         except:
-            self.settings = Toplevel(self.root, background = self.bg)
+            self.settings = Toplevel(self.root, background = self.bg[self.currentTheme])
             self.settings.title('AnoDatum - Settings')
             self.settings.resizable(False, False)
             
@@ -604,7 +611,7 @@ class AnoDatum:
             '''
             try: clicked_index = int(tree.focus().replace('I',''), 16) - 1
             except: return
-            temp = Toplevel(self.root, background = self.bg)
+            temp = Toplevel(self.root, background = self.bg[self.currentTheme])
             temp.title('Edit Label Name')
             temp.resizable(False, False)
             
@@ -873,7 +880,7 @@ class AnoDatum:
             for i in range(self.numClasses):
                 self.classList[i].set(settingsDict['labels'][i])
         except: # if not, show message
-            a = Toplevel(self.settings, background = self.bg)
+            a = Toplevel(self.settings, background = self.bg[self.currentTheme])
             ttk.Label(a, text = 'Couldn\'t load.', font = (None, 20)).grid(row = 0, column = 0, padx = 20, pady = 20)
             
     def nextFile(self):
@@ -905,7 +912,7 @@ class AnoDatum:
             f.write(string)
             f.close()
         except: # if not, show message
-            a = Toplevel(self.root, background = self.bg)
+            a = Toplevel(self.root, background = self.bg[self.currentTheme])
             ttk.Label(a, text = 'Couldn\'t save.', font = (None, 20)).grid(row = 0, column = 0, padx = 20, pady = 20)
             
     def saveSettings(self):
@@ -926,7 +933,7 @@ class AnoDatum:
             f.write(string)
             f.close()
         except: # if not, show message
-            a = Toplevel(self.settings, background = self.bg)
+            a = Toplevel(self.settings, background = self.bg[self.currentTheme])
             msg = ttk.Label(a, text = 'Couldn\'t save', font = (None, 20)).grid(row = 0, column = 0, padx = 20, pady = 20)
     
     def setUp(self):
@@ -997,28 +1004,23 @@ class AnoDatum:
                 tw = type(wid)
                 if tw in [Toplevel, ttk.Frame, ttk.LabelFrame]:
                     try:
-                        wid.configure(background = self.bg)
-                        wid.configure(foreground = self.fg)
+                        wid.configure(background = self.bg[self.currentTheme])
+                        wid.configure(foreground = self.fg[self.currentTheme])
                     except: pass
                     finally: changeBgFg(wid)
                 elif tw in [Text, Canvas, ttk.Combobox]:
                     try: 
                         wid.configure(highlightthickness = 0)
-                        wid.configure(background = self.bg)
-                        wid.configure(foreground = self.fg)
+                        wid.configure(background = self.bg[self.currentTheme])
+                        wid.configure(foreground = self.fg[self.currentTheme])
                     except: pass
         # ----- Local helper functions end here -----
         
         if self.currentTheme == 'light':
-            self.style.theme_use('azure-dark')
             self.currentTheme = 'dark'
-            self.bg = '#333333'
-            self.fg = '#ffffff'
         elif self.currentTheme == 'dark':
-            self.style.theme_use('azure')
             self.currentTheme = 'light'
-            self.bg = '#ffffff'
-            self.fg = '#000000'
+        self.style.theme_use(self.styleDict[self.currentTheme])
         changeBgFg(self.root)
     
     def undo(self, event):
