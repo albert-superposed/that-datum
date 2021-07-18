@@ -1,7 +1,6 @@
 import os
 import colorsys
 import time
-import cv2
 import json
 from tkinter import *
 from tkinter import ttk, filedialog
@@ -32,7 +31,7 @@ class AnoDatum:
             end = self.get_real(ex, ey)
             self.id = master.create_rectangle(self.start + end, outline = color, width = 3)
             x, y = master.bbox(self.id)[:2]
-            self.__text = master.create_text(x+2, y+2, text = label, fill = '#ffffff', anchor = 'nw')
+            self.__text = master.create_text(x+2, y+2, text = label, fill = '#000000', font = ('Courier', 8), anchor = 'nw')
             self.__bound = master.create_rectangle(master.bbox(self.__text), fill = color, width = 0)
             master.lift(self.__text)
         
@@ -61,14 +60,13 @@ class AnoDatum:
             can be (are) quite drunkening. The function was made
             to save the doer from hell like that.)
             '''
-            max_w = self.__master.bbox('image')[2]
-            max_h = self.__master.bbox('image')[3]
+            min_w, min_h, max_w, max_h = self.__master.bbox('image')
             
             abs_x = int(self.__master.xview()[0] * max_w + x)
             abs_y = int(self.__master.yview()[0] * max_h + y)
             
-            abs_y = (0 <= abs_y < max_h) * abs_y + (abs_y >= max_h) * (max_h-1)
-            abs_x = (0 <= abs_x < max_w) * abs_x + (abs_x >= max_w) * (max_w-1)
+            abs_y = (abs_y < min_h) * (min_h) + (min_h <= abs_y < max_h) * abs_y + (abs_y >= max_h) * (max_h-1)
+            abs_x = (abs_x < min_w) * (min_w) + (min_w <= abs_x < max_w) * abs_x + (abs_x >= max_w) * (max_w-1)
         
             return abs_x, abs_y
             
@@ -86,13 +84,14 @@ class AnoDatum:
             with relative to the actual image space
             in [0, 1] to adapt various sizes.
             '''
-            max_w = self.__master.bbox('image')[2]
-            max_h = self.__master.bbox('image')[3]
+            min_w, min_h, max_w, max_h = self.__master.bbox('image')
             x1, y1, x2, y2 = self.__master.bbox(self.id)
-            width = abs(x1 - x2) / max_w
-            height = abs(y1 - y2) / max_h
-            centerx = ((x1 + x2) // 2) / max_w
-            centery = ((y1 + y2) // 2) / max_h
+            width = abs(x1 - x2) / (max_w - min_w)
+            if width > 1: width = 1
+            height = abs(y1 - y2) / (max_h - min_h)
+            if height > 1: height = 1
+            centerx = (x1 + x2) / (2 * (max_w - min_w))
+            centery = (y1 + y2) / (2 * (max_h - min_h))
             return [round(i,4) for i in (centerx, centery, width, height)]
         
         def update(self, new_end_x, new_end_y, make_square = False):
@@ -133,7 +132,7 @@ class AnoDatum:
             x, y = self.get_real(x, y)
             self.id = master.create_oval(x, y, x+4, y+4, fill = color, outline = '#ffffff', width = 1)
             x, y = master.bbox(self.id)[:2]
-            self.__text = master.create_text(x, y+8, text = name, fill = '#ffffff', anchor = 'ne')
+            self.__text = master.create_text(x, y+8, text = name, fill = '#000000', font = ('Courier', 8), anchor = 'ne')
             self.__bound = master.create_rectangle(master.bbox(self.__text), fill = color, width = 0)
             master.lift(self.__text)
             
@@ -282,26 +281,14 @@ class AnoDatum:
         '''
         master = self.canvframe
         
-        self.currentLabel = ttk.Label(master, text = '', font = ('Courier', 11)) # shows current label string
+        self.currentLabel = ttk.Label(master, text = '', font = (None, 11)) # shows current label string
         self.colorPatch = Canvas(master, width = 100, height = 5, relief = 'flat', bg = self.bg[self.currentTheme], highlightthickness = 0, bd = 0) # color idicator
         self.canvCanvas = Canvas(master, width = 640, height = 480, relief = 'flat', bg = self.bg[self.currentTheme], highlightthickness = 0, bd = 0) # the actual drawing canvas
-        
-        # Scrollbars
-        self.sby = ttk.Scrollbar(master, orient = VERTICAL) # y scrollbar
-        self.sbx = ttk.Scrollbar(master, orient = HORIZONTAL) # x scrollbar
-        
-        # Key bindings
-        self.canvCanvas.bind('<Button-5>', lambda _: self.canvCanvas.yview_scroll(1, 'units')) # wheel-down to go down y view
-        self.canvCanvas.bind('<Button-4>', lambda _: self.canvCanvas.yview_scroll(-1, 'units')) # wheel-up to go up y view
-        self.canvCanvas.bind('<Control-5>', lambda _: self.canvCanvas.xview_scroll(1, 'units')) # Ctrl+wheel-down to go down x view
-        self.canvCanvas.bind('<Control-4>', lambda _: self.canvCanvas.xview_scroll(-1, 'units')) # Ctrl+wheel-up to go up x view
         
         # Positioning
         self.currentLabel.grid(row = 0, column = 0, pady = 10, sticky = W)
         self.colorPatch.grid(row = 1, column = 0, pady = 10, sticky = (N, E, W, S))
-        self.canvCanvas.grid(row = 2, column = 0, pady = (10, 0), sticky = (N, E, W, S))
-        self.sby.grid(row = 2, column = 1, sticky = 'ns')
-        self.sbx.grid(row = 3, column = 0, sticky = 'ew')
+        self.canvCanvas.grid(row = 3, column = 0, pady = 10, sticky = (N, E, W, S))
         
     def CanvasFrame(self):
         '''
@@ -317,16 +304,19 @@ class AnoDatum:
         self.stuffLog = [] # container for every drawings on the current canvas
         self.clearLog(self.logBox) # to avoid confusing
         img = Image.open(filepath)
-        img = ImageTk.PhotoImage(img)
-        master.image = img # don't know why this has to be done - just don't touch
-        self.curImg = self.canvCanvas.create_image(0, 0, anchor = 'nw', image = img, tags = 'image') # fits the image on the canvas
-        self.sbx.config(command = self.canvCanvas.xview)
-        self.sby.config(command = self.canvCanvas.yview)
-        self.canvCanvas.config(xscrollcommand = self.sbx.set, yscrollcommand = self.sby.set, scrollregion = self.canvCanvas.bbox('all'))
+        
+        w, h = img.size
+        if w > h: img = img.resize((640, int(h/w*640)))
+        elif w < h: img = img.resize((int(w/h*480), 480))
+        else: img = img.resize((480, 480))
+        
+        tkimg = ImageTk.PhotoImage(img)
+        master.image = tkimg # don't know why this has to be done - just don't touch
+        self.canvCanvas.create_image(320, 240, anchor = 'center', image = tkimg, tags = 'image') # fits the image on the canvas
         
     def LogFrame(self):
         '''
-        Briefly reports the user that what they have done.
+        Briefly reports the user that what have been done.
         '''
         master = self.logframe
         
@@ -706,7 +696,6 @@ class AnoDatum:
             if self.currentMode.get() == 'Bounding Box':
                 to_bind.bind('<Motion>', draw)
                 to_bind.bind('<Control-1>', draw)
-                to_bind.bind('<ButtonRelease-1>', draw)
             elif self.currentMode.get() == 'Landmark':
                 to_bind.bind('<Button-3>', draw)
             self.root.bind_all('<Control-z>', self.undo)
@@ -753,6 +742,7 @@ class AnoDatum:
         Let the user choose a directory to work.
         '''
         self.directoryPath.set(filedialog.askdirectory())
+        self.fileIndex = -1
         self.sldiLabel.config(text = self.directoryPath.get().split('/')[-1])
         
     def currentFile(self):
@@ -781,19 +771,24 @@ class AnoDatum:
         '''
         try: # ensures a label is selected
             color = self.colorDict[self.currentClass.get()]
-            master = self.canvCanvas
+            self.stuffLog == []
         except: return
+        master = self.canvCanvas
+        # reterives extremes
+        min_w, min_h, max_w, max_h = master.bbox('image')
+        # ensures the click event happen only on the image
+        if event.x < min_w or event.x > max_w: return
+        if event.y < min_h or event.y > max_h: return
         if 'ButtonPress' in str(event):
-            if event.num == 1: # second click to finalise the box
-                if self.clicked:
-                    self.clicked = False
-                    self.submit()
-                else: # first click to create a raw box
-                    self.clicked = True
-                    self.stuffLog.append(self.Box(master, 
-                                                  event.x, event.y, 
-                                                  event.x+1, event.y+1, 
-                                                  self.currentLabel['text'], color))
+            if self.clicked: # second click to finalise the box
+                self.clicked = False
+                self.submit()
+            else: # first click to create a raw box
+                self.clicked = True
+                self.stuffLog.append(self.Box(master, 
+                                              event.x, event.y, 
+                                              event.x+1, event.y+1, 
+                                              self.currentLabel['text'], color))
         elif 'Motion' in str(event) and self.clicked: # hover to adjust the size
             square = 'Control' in str(event) # press Ctrl to force draw square
             self.stuffLog[-1].update(event.x, event.y, square)
@@ -806,14 +801,14 @@ class AnoDatum:
         '''
         try: # ensures a label is selected
             color = self.colorDict[self.currentClass.get()]
-            master = self.canvCanvas
-            # reterives upperbounds
-            max_h = master.bbox('image')[2]
-            max_w = master.bbox('image')[3]
+            self.stuffLog == []
         except: return
+        master = self.canvCanvas
+        # reterives extremes
+        min_w, min_h, max_w, max_h = master.bbox('image')
         # ensures the click event happen only on the image
-        if event.x < 0 or event.x > max_w: return
-        if event.y < 0 or event.y > max_h: return
+        if event.x < min_w or event.x > max_w: return
+        if event.y < min_h or event.y > max_h: return
         if 'ButtonPress' in str(event):
             if event.num == 1: # left click to create a point
                 self.stuffLog.append(self.Point(master, event.x, event.y, self.currentLabel['text'], color))
@@ -829,13 +824,12 @@ class AnoDatum:
     
     def drawPS(self, event):
         pass
-
+        
     def getValues(self, list_):
         '''
         Returns a value-only list of list of tk variables.
         '''
         return [item.get() for item in list_]
-        #except: return []
 
     def giveColors(self):
         '''
@@ -882,7 +876,7 @@ class AnoDatum:
         except: # if not, show message
             a = Toplevel(self.settings, background = self.bg[self.currentTheme])
             ttk.Label(a, text = 'Couldn\'t load.', font = (None, 20)).grid(row = 0, column = 0, padx = 20, pady = 20)
-            
+    
     def nextFile(self):
         '''
         Increments fileIndex so that self.currentFile can fetch next file.
@@ -908,7 +902,7 @@ class AnoDatum:
         '''
         try: # ensures data get saved correctly
             string = json.dumps(self.data, sort_keys=True, indent = 4)
-            f = open(self.directoryPath.get()+'data{}.json'.format(time.strftime('@%d-%m-%Y_%H-%M-%S')), 'w')
+            f = open(self.directoryPath.get()+'/data{}.json'.format(time.strftime('@%d-%m-%Y_%H-%M-%S')), 'w')
             f.write(string)
             f.close()
         except: # if not, show message
@@ -1010,9 +1004,9 @@ class AnoDatum:
                     finally: changeBgFg(wid)
                 elif tw in [Text, Canvas, ttk.Combobox]:
                     try: 
-                        wid.configure(highlightthickness = 0)
                         wid.configure(background = self.bg[self.currentTheme])
                         wid.configure(foreground = self.fg[self.currentTheme])
+                        wid.configure(highlightthickness = 0)
                     except: pass
         # ----- Local helper functions end here -----
         
