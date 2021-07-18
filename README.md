@@ -15,6 +15,8 @@ Peel helps you to transform video into image frames.<br>
 
     python -m Peel
 
+![Demo](https://github.com/u-need-dropout/that-datum/blob/main/images/Peel-demo.png)
+
 Supported file foramts:<br>
 + avi<br>
 + mp4<br>
