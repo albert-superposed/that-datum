@@ -6,9 +6,9 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
-class AnoDatum:
+class Anota:
     '''
-    The whole app...
+    App to annotate image data.
     '''
     class Box:
         '''
@@ -194,15 +194,15 @@ class AnoDatum:
         '''
         # Configures the root.
         self.root = root
-        self.root.title('AnoDatum')
+        self.root.title('Anota')
         self.root.resizable(False, False)
         
         # Configures style.
         self.currentTheme = 'light'
         self.style = ttk.Style(self.root)
         try:
-            self.root.tk.call('source', 'Azure/azure/azure.tcl')
             self.root.tk.call('source', 'Azure/azure-dark/azure-dark.tcl')
+            self.root.tk.call('source', 'Azure/azure/azure.tcl')
             self.styleDict = {'light': 'azure',
                               'dark' : 'azure-dark'}
             self.bg = {'light': '#ffffff', 'dark': '#333333'}
@@ -1044,5 +1044,5 @@ class AnoDatum:
         pointer.configure(state = 'disabled')
 
 root = Tk()
-app = AnoDatum(root)
+app = Anota(root)
 root.mainloop()
