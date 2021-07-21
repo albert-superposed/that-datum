@@ -62,13 +62,10 @@ class Anota:
             '''
             min_w, min_h, max_w, max_h = self.__master.bbox('image')
             
-            abs_x = int(self.__master.xview()[0] * max_w + x)
-            abs_y = int(self.__master.yview()[0] * max_h + y)
-            
-            abs_y = (abs_y < min_h) * (min_h) + (min_h <= abs_y < max_h) * abs_y + (abs_y >= max_h) * (max_h-1)
-            abs_x = (abs_x < min_w) * (min_w) + (min_w <= abs_x < max_w) * abs_x + (abs_x >= max_w) * (max_w-1)
+            y = (y < min_h) * (min_h) + (min_h <= y < max_h) * y + (y >= max_h) * (max_h-1)
+            x = (x < min_w) * (min_w) + (min_w <= x < max_w) * x + (x >= max_w) * (max_w-1)
         
-            return abs_x, abs_y
+            return x, y
             
         def info(self):
             '''
@@ -107,6 +104,9 @@ class Anota:
             if make_square:
                 if sx < ex: ex = sx + abs(sy - ey)
                 else: ex = sx - abs(sy - ey)
+                ex, ey = self.get_real(ex, ey)
+                if sy < ey: ey = sy + abs(sx - ex)
+                else: ey = sy - abs(sx - ex)
             self.__master.coords(self.id, (sx, sy, ex, ey))
             
             x, y = self.__master.bbox(self.id)[:2]
