@@ -35,11 +35,11 @@ Anota is a tool design for annotating image data.<br>
 ![Demo3](https://github.com/u-need-dropout/that-datum/blob/main/images/Anota-demo.gif)
 
 Supports 'loading and saving settings'.<br>
-Compatible with any sizes of images.<br>
+Compatible with any aspect ratios.<br>
 
 Supported annotating schemes:<br>
-+ Classic (a label at a time) <br>
-+ Extended (multilabels at a time) <br>
++ Classic (one label at a time) <br>
++ Extended (multiple labels at a time) <br>
 + Hierarchical (multilabels with relation and controlled selection at a time) <br>
 
 Current supported annotating modes:<br>
@@ -47,7 +47,7 @@ Current supported annotating modes:<br>
 + Landmark (format - [landmarkid, x, y])<br>
 
 **Note: Everything is now Relational and in the range [0, 1] <br>
-rounded to 4 decimals to be consistent with various image sizes.**<br>
+rounded to 4 decimals to be consistent with various aspect ratios.**<br>
 
 Supported file formats:<br>
 + png<br>
